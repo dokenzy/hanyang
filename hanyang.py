@@ -5,14 +5,11 @@
 # dokenzy@gmail.com
 # license: MIT License
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 from bs4 import BeautifulSoup
 import requests
 from datetime import datetime
-
-# TODO:
-# 주말에 오류 발생
 
 cafes = ['학생복지관 학생식당',
          '학생회관 중식당',
@@ -25,10 +22,45 @@ cafes = ['학생복지관 학생식당',
 days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
 
 today = datetime.today().weekday()  # 요일의 인덱스. 월요일: 0
+isSat = False
 result = {}
 
+def getSikdan(tables):
+    """
+    월요일부터 토요일까지의 식단을 파싱해서 리턴
+    """
+    sikdans = []
+    for table in tables:
+        sikdan = {}
+        try:
+            # 점심 1
+            lunch = table.tbody.findAll('tr')[1].findAll('td')  # 중식
+            lunch1 = lunch[1].text.strip().split(',')
+            lunch1_price = lunch[2].text.strip()
+            sikdan['lunch1'] = {'menu': lunch1, 'price': lunch1_price}
+            if not isSat:
+                # 토요일은 lunch1 밖에 없음
+                # lunch2
+                lunch2 = lunch[3].text.strip()
+                lunch2_price = lunch[4].text.strip()
+                sikdan['lunch2'] = {'menu': lunch2, 'price': lunch2_price}
+                # dinner1
+                dinner = table.tbody.findAll('tr')[2].findAll('td')  # 중식
+                dinner1_menu = dinner[1].text.strip()
+                dinner1_price = dinner[2].text.strip()
+                # dinner2
+                dinner2_menu = dinner[3].text.strip()
+                dinner2_price = dinner[4].text.strip()
+                sikdan['dinner1'] = {'price': dinner1_price, 'menu': dinner1_menu}
+                sikdan['dinner2'] = {'price': dinner2_price, 'menu': dinner2_menu}
+        except:
+            pass
+        finally:
+            sikdans.append(sikdan)
+    return sikdans
 
-def getSikdan(cafe_index):
+
+def getInfo(cafe_index):
     """
     선택한 식당의 이름, 위치, 운영 시간 등의 정보 및 식단을 가져온다.
     """
@@ -45,44 +77,20 @@ def getSikdan(cafe_index):
     result['식당정보'] = cafe
     tables = soup.select('#sikdang')[0].findAll('table')
 
-    sikdans = []
-
-    for table in tables:
-        """
-        1주일간의 식당 정보를 파싱해서 sikdans에 저장
-        """
-        sikdan = {}
-        try:
-            lunch = table.tbody.findAll('tr')[1].findAll('td')  # 중식
-            lunch4000 = lunch[1].text.strip()
-            lunch5000 = lunch[3].text.strip()
-            dinner = table.tbody.findAll('tr')[2].findAll('td')  # 중식
-            dinner1_menu = dinner[1].text.strip()
-            dinner1_price = dinner[2].text.strip()
-            dinner2_menu = dinner[3].text.strip()
-            dinner2_price = dinner[4].text.strip()
-            sikdan['lunch1'] = {'price': 4000, 'menu': lunch4000}
-            sikdan['lunch2'] = {'price': 5000, 'menu': lunch5000}
-            sikdan['dinner1'] = {'price': dinner1_price, 'menu': dinner1_menu}
-            sikdan['dinner2'] = {'price': dinner2_price, 'menu': dinner2_menu}
-            sikdans.append(sikdan)
-        except:
-            pass
-    result['메뉴'] = sikdans
+    result['메뉴'] = getSikdan(tables)
 
 
-def getMenu(cafe_name='교직원식당'):
+def getMenu(cafe_name='교직원식당', day=today):
     """
     선택한 카페에 대한 식단을 가져온다.
     """
-    # TODO:
-    # 요일 선택할 수 있도록.
-    # 현재는 오늘만 나옴
     cafe_index = cafes.index(cafe_name)
-    getSikdan(cafe_index)
-    today_menu = result['메뉴'][today]
-    today_menu['date'] = datetime.today().strftime('%Y년 %m월 %d일')
-    today_menu['day'] = days[today]
-    return today_menu
+    if day == 5:
+        isSat = True
+    getInfo(cafe_index)
+    menu = result['메뉴'][day]
+    menu['date'] = datetime.today().strftime('%Y년 %m월 %d일')
+    menu['day'] = days[day]
+    return menu
 
-print(getMenu()['dinner2']['menu'])
+print(getMenu(day=4)['dinner1']['menu'])

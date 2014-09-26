@@ -1,10 +1,11 @@
 hanyang
 =======
 
+버전: 0.0.2
 한양대학교 식당 홈페이지를 파싱해서 식단정보만 가져오는 스크립트
 
 ## 사용방법
-* getMenu(cafe_name='교직원식당')
+* getMenu(cafe_name='교직원식당', day=3): day는 0부터 월요일
 * getMenu()['dinner2'])
 * getMenu()['dinner2']['menu'])
 
