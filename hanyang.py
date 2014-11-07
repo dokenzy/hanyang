@@ -5,11 +5,13 @@
 # dokenzy@gmail.com
 # license: MIT License
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 from bs4 import BeautifulSoup
 import requests
 from datetime import datetime
+from pync import Notifier
+
 
 cafes = ['학생복지관 학생식당',
          '학생회관 중식당',
@@ -93,4 +95,6 @@ def getMenu(cafe_name='교직원식당', day=today):
     menu['day'] = days[day]
     return menu
 
-print(getMenu(day=4)['dinner1']['menu'])
+this_menu = getMenu(day=4)['dinner1']['menu']
+Notifier.notify('%s' % (this_menu))
+#Notifier.notify('Hello World', execute='say %s' % (speak))
