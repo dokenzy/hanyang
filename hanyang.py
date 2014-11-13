@@ -27,6 +27,7 @@ today = datetime.today().weekday()  # 요일의 인덱스. 월요일: 0
 isSat = False
 result = {}
 
+
 def getSikdan(tables):
     """
     월요일부터 토요일까지의 식단을 파싱해서 리턴
@@ -88,13 +89,17 @@ def getMenu(cafe_name='교직원식당', day=today):
     """
     cafe_index = cafes.index(cafe_name)
     if day == 5:
+        global isSat
         isSat = True
+    elif day > 5:
+        day = 0
     getInfo(cafe_index)
     menu = result['메뉴'][day]
     menu['date'] = datetime.today().strftime('%Y년 %m월 %d일')
     menu['day'] = days[day]
     return menu
 
-this_menu = getMenu(day=4)['dinner1']['menu']
+this_menu = getMenu()['dinner1']['menu']
 Notifier.notify('%s' % (this_menu))
 #Notifier.notify('Hello World', execute='say %s' % (speak))
+print(getMenu()['dinner1']['menu'])
